@@ -1,0 +1,74 @@
+package io.quarkus.apicurio.registry.protobuf.it;
+
+import io.quarkus.apicurio.registry.protobuf.it.proto.TestRecord;
+import io.smallrye.reactive.messaging.kafka.api.IncomingKafkaRecordMetadata;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Consumer demonstrating UUID key access with Protobuf messages.
+ * <p>
+ * Shows how to receive messages and access the UUID partition key.
+ */
+@ApplicationScoped
+public class UuidKeyConsumer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(UuidKeyConsumer.class);
+
+    // Store received messages with their keys for testing
+    private final Map<UUID, TestRecord> receivedByKey = new ConcurrentHashMap<>();
+
+    /**
+     * Receives messages with access to the UUID key via metadata.
+     * <p>
+     * Uses {@link Message} wrapper to access Kafka metadata including the key.
+     */
+    @Incoming("uuid-key-in")                                          // (1) Channel name
+    public CompletionStage<Void> consume(Message<TestRecord> message) {
+        TestRecord record = message.getPayload();                     // (2) Get Protobuf payload
+
+        // Access Kafka metadata to get the UUID key
+        IncomingKafkaRecordMetadata<UUID, TestRecord> metadata =      // (3) Get Kafka metadata
+                message.getMetadata(IncomingKafkaRecordMetadata.class)
+                        .orElse(null);
+
+        UUID key = null;
+        if (metadata != null) {
+            key = metadata.getKey();                                  // (4) Extract UUID key
+            LOG.info("Received message: key={}, id={}, name={}",
+                    key, record.getId(), record.getName());
+        } else {
+            LOG.warn("Received message without Kafka metadata: id={}", record.getId());
+        }
+
+        receivedByKey.put(key != null ? key : UUID.randomUUID(), record);
+
+        return message.ack();                                         // (5) Acknowledge message
+    }
+
+    /**
+     * Returns all received messages indexed by their UUID key.
+     */
+    public Map<UUID, TestRecord> getReceivedByKey() {
+        return receivedByKey;
+    }
+
+    /**
+     * Gets a specific message by its UUID key.
+     */
+    public TestRecord getByKey(UUID key) {
+        return receivedByKey.get(key);
+    }
+
+    public void clear() {
+        receivedByKey.clear();
+    }
+}

@@ -9,10 +9,16 @@ import java.util.Set;
 /**
  * ConfigSource that provides Protobuf serializer/deserializer configuration
  * for detected Kafka channels.
- *
+ * <p>
+ * This extension enforces:
+ * <ul>
+ *   <li>UUID keys (via Kafka's built-in UUIDSerializer/UUIDDeserializer)</li>
+ *   <li>Protobuf values (via Apicurio Registry serde)</li>
+ * </ul>
+ * <p>
  * Ordinal is set to 200 (lower than application.properties at 250) to allow
  * users to override these defaults in their application.properties.
- *
+ * <p>
  * Priority chain (higher = wins):
  * - System properties: 400
  * - Environment variables: 300
@@ -22,8 +28,13 @@ import java.util.Set;
  */
 public class ProtobufChannelConfigSource implements ConfigSource {
 
+    // Value serializers (Protobuf via Apicurio Registry)
     private static final String PROTOBUF_SERIALIZER = "io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer";
     private static final String PROTOBUF_DESERIALIZER = "io.apicurio.registry.serde.protobuf.ProtobufKafkaDeserializer";
+
+    // Key serializers (UUID - enforced by this extension)
+    private static final String UUID_SERIALIZER = "org.apache.kafka.common.serialization.UUIDSerializer";
+    private static final String UUID_DESERIALIZER = "org.apache.kafka.common.serialization.UUIDDeserializer";
 
     // These are set at static init time by the recorder
     private static volatile Map<String, String> incomingChannels = new HashMap<>();
@@ -77,18 +88,20 @@ public class ProtobufChannelConfigSource implements ConfigSource {
             return;
         }
 
-        // Configure incoming channels
+        // Configure incoming channels (UUID keys + Protobuf values)
         for (String channelName : incomingChannels.keySet()) {
             String prefix = "mp.messaging.incoming." + channelName + ".";
             properties.put(prefix + "connector", "smallrye-kafka");
+            properties.put(prefix + "key.deserializer", UUID_DESERIALIZER);
             properties.put(prefix + "value.deserializer", PROTOBUF_DESERIALIZER);
             properties.put(prefix + "auto.offset.reset", "earliest");
         }
 
-        // Configure outgoing channels
+        // Configure outgoing channels (UUID keys + Protobuf values)
         for (String channelName : outgoingChannels.keySet()) {
             String prefix = "mp.messaging.outgoing." + channelName + ".";
             properties.put(prefix + "connector", "smallrye-kafka");
+            properties.put(prefix + "key.serializer", UUID_SERIALIZER);
             properties.put(prefix + "value.serializer", PROTOBUF_SERIALIZER);
         }
 
