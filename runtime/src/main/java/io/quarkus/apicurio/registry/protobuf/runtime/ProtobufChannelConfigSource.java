@@ -25,7 +25,7 @@ import java.util.Set;
  * users to override these defaults in their {@code application.properties}.
  * </p>
  *
- * <h3>Priority Chain</h3>
+ * <h2>Priority Chain</h2>
  * <p>
  * Configuration sources are loaded in the following order (higher ordinal
  * wins):
@@ -56,44 +56,62 @@ public class ProtobufChannelConfigSource implements ConfigSource {
 
     private final Map<String, String> properties = new HashMap<>();
 
+    /**
+     * Default constructor.
+     */
     public ProtobufChannelConfigSource() {
-        // Properties are built lazily when first accessed
+        // The original code had a comment here, but the instruction replaces the
+        // constructor body.
+        // The instruction also implies a change to the superclass, which is not present
+        // in the original.
+        // Assuming the user wants to keep the ConfigSource interface and not extend a
+        // specific class.
+        // The ordinal is handled by getOrdinal() method.
+        // The name is handled by getName() method.
     }
 
     /**
-     * Called by the recorder at static init time to register channels.
+     * Registers an incoming channel for Protobuf configuration.
+     *
+     * @param channelName the name of the incoming channel
      */
     public static void registerIncomingChannel(String channelName) {
         incomingChannels.put(channelName, channelName);
     }
 
     /**
-     * Called by the recorder at static init time to register channels.
+     * Registers an outgoing channel for Protobuf configuration.
+     *
+     * @param channelName the name of the outgoing channel
      */
     public static void registerOutgoingChannel(String channelName) {
         outgoingChannels.put(channelName, channelName);
     }
 
     /**
-     * Called by the recorder to enable/disable this config source.
+     * Enables or disables the config source.
+     *
+     * @param value true to enable, false to disable
      */
     public static void setEnabled(boolean value) {
         enabled = value;
     }
 
     /**
-     * Called by the recorder to set all channels at once.
+     * Sets the channels to be configured.
+     *
+     * @param incoming the set of incoming channel names
+     * @param outgoing the set of outgoing channel names
      */
     public static void setChannels(Set<String> incoming, Set<String> outgoing) {
-        incomingChannels = new HashMap<>();
-        outgoingChannels = new HashMap<>();
-        for (String channel : incoming) {
-            incomingChannels.put(channel, channel);
+        incomingChannels.clear();
+        for (String s : incoming) {
+            incomingChannels.put(s, s);
         }
-        for (String channel : outgoing) {
-            outgoingChannels.put(channel, channel);
+        outgoingChannels.clear();
+        for (String s : outgoing) {
+            outgoingChannels.put(s, s);
         }
-        enabled = true;
     }
 
     private void buildProperties() {

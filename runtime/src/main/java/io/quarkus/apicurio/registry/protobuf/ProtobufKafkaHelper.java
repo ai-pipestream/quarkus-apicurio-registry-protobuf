@@ -16,7 +16,7 @@ import java.util.UUID;
  * convenient methods for sending messages with proper key metadata.
  * </p>
  *
- * <h3>Usage</h3>
+ * <h2>Usage</h2>
  * 
  * <pre>
  * {@code
@@ -46,6 +46,12 @@ import java.util.UUID;
  */
 @ApplicationScoped
 public class ProtobufKafkaHelper {
+
+    /**
+     * Default constructor.
+     */
+    public ProtobufKafkaHelper() {
+    }
 
     /**
      * Sends a Protobuf message with an explicit UUID key.

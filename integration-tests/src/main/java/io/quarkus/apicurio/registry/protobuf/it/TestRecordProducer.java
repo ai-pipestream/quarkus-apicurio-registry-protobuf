@@ -19,6 +19,17 @@ public class TestRecordProducer {
     @Channel("test-out")
     Emitter<TestRecord> emitter;
 
+    /**
+     * Default constructor.
+     */
+    public TestRecordProducer() {
+    }
+
+    /**
+     * Sends a TestRecord with the given name.
+     *
+     * @param name the name to include in the record
+     */
     public void send(String name) {
         TestRecord record = TestRecord.newBuilder()
                 .setId(UUID.randomUUID().toString())
@@ -30,6 +41,11 @@ public class TestRecordProducer {
         emitter.send(record);
     }
 
+    /**
+     * Sends a TestRecord.
+     *
+     * @param record the record to send
+     */
     public void send(TestRecord record) {
         emitter.send(record);
     }

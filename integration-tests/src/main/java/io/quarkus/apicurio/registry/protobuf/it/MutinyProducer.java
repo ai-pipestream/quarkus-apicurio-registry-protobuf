@@ -9,7 +9,8 @@ import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import java.util.UUID;
 
 /**
- * Mutiny-based producer that uses @Outgoing with Multi.
+ * Mutiny-based producer that uses {@code @Outgoing} with {@code Multi}.
+ * <p>
  * Demonstrates reactive streaming of Protobuf messages to Kafka.
  */
 @ApplicationScoped
@@ -18,8 +19,16 @@ public class MutinyProducer {
     private final BroadcastProcessor<TestRecord> processor = BroadcastProcessor.create();
 
     /**
-     * Reactive stream that emits TestRecord messages to Kafka.
+     * Default constructor.
+     */
+    public MutinyProducer() {
+    }
+
+    /**
+     * Reactive stream that emits {@link TestRecord} messages to Kafka.
      * The extension auto-detects the Protobuf type and configures the serializer.
+     *
+     * @return a {@code Multi<TestRecord>} that publishes records to the {@code mutiny-out} channel
      */
     @Outgoing("mutiny-out")
     public Multi<TestRecord> produce() {
@@ -27,7 +36,9 @@ public class MutinyProducer {
     }
 
     /**
-     * Send a message by emitting it to the processor.
+     * Sends a message by emitting it to the processor.
+     *
+     * @param name the value to set on the {@code name} field of the record
      */
     public void send(String name) {
         TestRecord record = TestRecord.newBuilder()
@@ -40,7 +51,9 @@ public class MutinyProducer {
     }
 
     /**
-     * Send a pre-built record.
+     * Sends a pre-built record.
+     *
+     * @param record the record to emit
      */
     public void send(TestRecord record) {
         processor.onNext(record);

@@ -74,3 +74,18 @@ compileJava {
 compileTestJava {
     options.encoding = 'UTF-8'
 }
+
+// Configure Javadoc to avoid warnings/errors from generated sources
+tasks.withType(Javadoc).configureEach {
+    // Exclude Quarkus-generated gRPC/protobuf classes from Javadoc
+    exclude('io/quarkus/apicurio/registry/protobuf/it/proto/**')
+
+    options.encoding = 'UTF-8'
+    // Generated sources often lack full Javadoc; disable strict doclint
+    options.addBooleanOption('Xdoclint:none', true)
+}
+
+javadoc {
+    exclude '**/proto/**'
+    options.addStringOption('Xdoclint:none', '-quiet')
+}

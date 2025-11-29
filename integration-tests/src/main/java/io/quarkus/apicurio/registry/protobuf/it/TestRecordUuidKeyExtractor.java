@@ -13,29 +13,39 @@ import java.util.UUID;
  * which is stored as a string in the Protobuf message.
  * <p>
  * <b>Usage:</b>
- * <pre>{@code
- * @Inject
- * TestRecordUuidKeyExtractor keyExtractor;
+ * 
+ * <pre>
+ * {
+ *     &#64;code
+ *     &#64;Inject
+ *     TestRecordUuidKeyExtractor keyExtractor;
  *
- * @Inject
- * ProtobufEmitterFactory factory;
+ *     &#64;Inject
+ *     ProtobufEmitterFactory factory;
  *
- * @Inject
- * @Channel("test-out")
- * Emitter<TestRecord> rawEmitter;
+ *     @Inject
+ *     &#64;Channel("test-out")
+ *     Emitter<TestRecord> rawEmitter;
  *
- * // Create emitter with default key extractor
- * ProtobufEmitter<TestRecord> emitter = factory.wrap(rawEmitter, "test-out", keyExtractor);
+ *     // Create emitter with default key extractor
+ *     ProtobufEmitter<TestRecord> emitter = factory.wrap(rawEmitter, "test-out", keyExtractor);
  *
- * // Messages automatically use the id field as the partition key
- * emitter.send(testRecord);
- * }</pre>
+ *     // Messages automatically use the id field as the partition key
+ *     emitter.send(testRecord);
+ * }
+ * </pre>
  * <p>
  * <b>Note:</b> In a real application, this class would typically be defined
  * in {@code pipeline-commons} and reused across services.
  */
 @ApplicationScoped
 public class TestRecordUuidKeyExtractor implements UuidKeyExtractor<TestRecord> {
+
+    /**
+     * Default constructor.
+     */
+    public TestRecordUuidKeyExtractor() {
+    }
 
     /**
      * Extracts the UUID key from the TestRecord's id field.
@@ -47,7 +57,7 @@ public class TestRecordUuidKeyExtractor implements UuidKeyExtractor<TestRecord> 
     @Override
     public UUID extractKey(TestRecord message) {
         String id = message.getId();
-        //noinspection ConstantValue
+        // noinspection ConstantValue
         if (id == null || id.isEmpty()) {
             throw new IllegalArgumentException("TestRecord.id is required for key extraction");
         }

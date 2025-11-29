@@ -20,9 +20,18 @@ import java.util.Set;
 public class ApicurioRegistryProtobufRecorder {
 
     /**
+     * Default constructor.
+     */
+    public ApicurioRegistryProtobufRecorder() {
+    }
+
+    /**
      * Called at STATIC_INIT to configure the Protobuf channels.
      * This sets up the high-priority ConfigSource with serializer/deserializer
      * config.
+     *
+     * @param incomingChannels the set of incoming channel names to configure
+     * @param outgoingChannels the set of outgoing channel names to configure
      */
     public void configureProtobufChannels(Set<String> incomingChannels, Set<String> outgoingChannels) {
         ProtobufChannelConfigSource.setChannels(incomingChannels, outgoingChannels);

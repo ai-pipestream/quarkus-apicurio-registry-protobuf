@@ -30,20 +30,23 @@ public class UuidKeyConsumer {
      * Receives messages with access to the UUID key via metadata.
      * <p>
      * Uses {@link Message} wrapper to access Kafka metadata including the key.
+     *
+     * @param message the received message wrapper
+     * @return a completion stage indicating message processing is complete
      */
-    @Incoming("uuid-key-in")                                          // (1) Channel name
+    @Incoming("uuid-key-in") // (1) Channel name
     @SuppressWarnings("unchecked") // Raw type from getMetadata is safe - types erased at runtime
     public CompletionStage<Void> consume(Message<TestRecord> message) {
-        TestRecord record = message.getPayload();                     // (2) Get Protobuf payload
+        TestRecord record = message.getPayload(); // (2) Get Protobuf payload
 
         // Access Kafka metadata to get the UUID key
-        IncomingKafkaRecordMetadata<UUID, TestRecord> metadata =      // (3) Get Kafka metadata
+        IncomingKafkaRecordMetadata<UUID, TestRecord> metadata = // (3) Get Kafka metadata
                 message.getMetadata(IncomingKafkaRecordMetadata.class)
                         .orElse(null);
 
         UUID key = null;
         if (metadata != null) {
-            key = metadata.getKey();                                  // (4) Extract UUID key
+            key = metadata.getKey(); // (4) Extract UUID key
             LOG.info("Received message: key={}, id={}, name={}",
                     key, record.getId(), record.getName());
         } else {
@@ -52,11 +55,13 @@ public class UuidKeyConsumer {
 
         receivedByKey.put(key != null ? key : UUID.randomUUID(), record);
 
-        return message.ack();                                         // (5) Acknowledge message
+        return message.ack(); // (5) Acknowledge message
     }
 
     /**
      * Returns all received messages indexed by their UUID key.
+     *
+     * @return a map of received messages keyed by UUID
      */
     public Map<UUID, TestRecord> getReceivedByKey() {
         return receivedByKey;
@@ -64,11 +69,17 @@ public class UuidKeyConsumer {
 
     /**
      * Gets a specific message by its UUID key.
+     *
+     * @param key the UUID key to look up
+     * @return the message associated with the key, or null if not found
      */
     public TestRecord getByKey(UUID key) {
         return receivedByKey.get(key);
     }
 
+    /**
+     * Clears the received messages.
+     */
     public void clear() {
         receivedByKey.clear();
     }

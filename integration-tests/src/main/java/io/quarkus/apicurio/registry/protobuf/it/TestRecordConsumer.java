@@ -19,16 +19,35 @@ public class TestRecordConsumer {
 
     private final CopyOnWriteArrayList<TestRecord> received = new CopyOnWriteArrayList<>();
 
+    /**
+     * Default constructor.
+     */
+    public TestRecordConsumer() {
+    }
+
+    /**
+     * Consumes a TestRecord message.
+     *
+     * @param message the received message
+     */
     @Incoming("test-in")
     public void consume(TestRecord message) {
         LOG.info("Received message: id={}, name={}", message.getId(), message.getName());
         received.add(message);
     }
 
+    /**
+     * Gets the list of received messages.
+     *
+     * @return the list of received messages
+     */
     public CopyOnWriteArrayList<TestRecord> getReceived() {
         return received;
     }
 
+    /**
+     * Clears the list of received messages.
+     */
     public void clear() {
         received.clear();
     }

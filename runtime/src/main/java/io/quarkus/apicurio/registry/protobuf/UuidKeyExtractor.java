@@ -19,7 +19,7 @@ import java.util.UUID;
  * key).</li>
  * </ul>
  *
- * <h3>Example Implementation</h3>
+ * <h2>Example Implementation</h2>
  * 
  * <pre>{@code
  * public class OrderEventKeyExtractor implements UuidKeyExtractor<OrderEvent> {
