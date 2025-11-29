@@ -25,7 +25,26 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Starts Apicurio Registry as dev service for Protobuf extension.
+ * Starts Apicurio Registry as a Dev Service for the Protobuf extension.
+ *
+ * <p>
+ * This processor handles the automatic provisioning of an Apicurio Registry
+ * container
+ * when running in dev or test mode. It ensures that a registry is available for
+ * Protobuf schema registration and lookup.
+ * </p>
+ *
+ * <h3>Features</h3>
+ * <ul>
+ * <li><strong>Automatic Startup:</strong> Starts an Apicurio Registry container
+ * if no URL is configured.</li>
+ * <li><strong>Version Support:</strong> Defaults to Apicurio Registry v3
+ * ({@code apicurio/apicurio-registry:3.1.4}).</li>
+ * <li><strong>Configuration Injection:</strong> Automatically configures the
+ * application to use the started registry.</li>
+ * <li><strong>Container Sharing:</strong> Supports sharing the registry
+ * container across multiple Quarkus applications.</li>
+ * </ul>
  */
 @BuildSteps(onlyIfNot = IsNormal.class, onlyIf = DevServicesConfig.Enabled.class)
 public class DevServicesApicurioRegistryProtobufProcessor {
@@ -129,12 +148,14 @@ public class DevServicesApicurioRegistryProtobufProcessor {
         }
 
         if (isPropertySet(APICURIO_REGISTRY_URL_CONFIG)) {
-            log.debug("Not starting dev services for Apicurio Registry, " + APICURIO_REGISTRY_URL_CONFIG + " is configured.");
+            log.debug("Not starting dev services for Apicurio Registry, " + APICURIO_REGISTRY_URL_CONFIG
+                    + " is configured.");
             return null;
         }
 
         if (!hasKafkaChannelWithoutRegistry()) {
-            log.debug("Not starting dev services for Apicurio Registry, all the channels have a registry URL configured.");
+            log.debug(
+                    "Not starting dev services for Apicurio Registry, all the channels have a registry URL configured.");
             return null;
         }
 
@@ -180,7 +201,8 @@ public class DevServicesApicurioRegistryProtobufProcessor {
         return false;
     }
 
-    private ApicurioRegistryDevServiceCfg getConfiguration(ApicurioRegistryProtobufBuildTimeConfig.DevServicesConfig cfg) {
+    private ApicurioRegistryDevServiceCfg getConfiguration(
+            ApicurioRegistryProtobufBuildTimeConfig.DevServicesConfig cfg) {
         return new ApicurioRegistryDevServiceCfg(cfg);
     }
 
@@ -203,8 +225,10 @@ public class DevServicesApicurioRegistryProtobufProcessor {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             ApicurioRegistryDevServiceCfg that = (ApicurioRegistryDevServiceCfg) o;
             return devServicesEnabled == that.devServicesEnabled
                     && Objects.equals(imageName, that.imageName)

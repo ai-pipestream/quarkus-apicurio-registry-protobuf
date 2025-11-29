@@ -1,6 +1,9 @@
 package io.quarkus.apicurio.registry.protobuf.deployment;
 
 import io.quarkus.apicurio.registry.protobuf.ApicurioRegistryProtobufRecorder;
+import io.quarkus.apicurio.registry.protobuf.ProtobufKafkaHelper;
+import io.quarkus.apicurio.registry.protobuf.RandomUuidKeyExtractor;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -20,12 +23,36 @@ import java.util.Set;
 
 /**
  * Build-time processor for Apicurio Registry Protobuf extension.
+ *
  * <p>
- * This processor:
- * 1. Registers the extension feature
- * 2. Auto-detects Kafka channels using Protobuf types and configures serializer/deserializer
- * 3. Configures default properties for Protobuf serde
- * 4. Registers classes for reflection (native image support)
+ * This processor automatically configures Kafka channels for Protobuf message serialization and deserialization
+ * by detecting Protobuf types in {@code @Incoming}, {@code @Outgoing}, and {@code @Channel} annotations.
+ * </p>
+ *
+ * <h3>Key Features</h3>
+ * <ul>
+ *   <li><strong>Auto-Detection:</strong> Scans for methods and fields using Protobuf types (classes extending {@code MessageLite}).</li>
+ *   <li><strong>Configuration Generation:</strong> Automatically sets the following properties for detected channels:
+ *     <ul>
+ *       <li>{@code value.serializer} or {@code value.deserializer} to Apicurio Protobuf Serde.</li>
+ *       <li>{@code connector} to {@code smallrye-kafka} (if not already set).</li>
+ *     </ul>
+ *   </li>
+ *   <li><strong>Native Image Support:</strong> Registers necessary Apicurio and Protobuf classes for reflection.</li>
+ * </ul>
+ *
+ * <h3>Configuration</h3>
+ * <p>
+ * The extension relies on the following global properties being set in {@code application.properties}:
+ * </p>
+ * <ul>
+ *   <li>{@code mp.messaging.connector.smallrye-kafka.apicurio.registry.url}</li>
+ *   <li>{@code kafka.bootstrap.servers}</li>
+ * </ul>
+ *
+ * @see io.quarkus.apicurio.registry.protobuf.ProtobufIncoming
+ * @see io.quarkus.apicurio.registry.protobuf.ProtobufOutgoing
+ * @see io.quarkus.apicurio.registry.protobuf.ProtobufChannel
  */
 class ApicurioRegistryProtobufProcessor {
 
@@ -55,6 +82,17 @@ class ApicurioRegistryProtobufProcessor {
     @BuildStep
     ExtensionSslNativeSupportBuildItem enableSslInNative() {
         return new ExtensionSslNativeSupportBuildItem(FEATURE);
+    }
+
+    /**
+     * Register CDI beans provided by the extension.
+     */
+    @BuildStep
+    AdditionalBeanBuildItem registerBeans() {
+        return AdditionalBeanBuildItem.builder()
+                .addBeanClasses(ProtobufKafkaHelper.class)
+                .setUnremovable()
+                .build();
     }
 
     /**

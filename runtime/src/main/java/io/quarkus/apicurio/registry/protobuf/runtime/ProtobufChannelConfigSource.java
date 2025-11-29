@@ -9,22 +9,34 @@ import java.util.Set;
 /**
  * ConfigSource that provides Protobuf serializer/deserializer configuration
  * for detected Kafka channels.
+ *
  * <p>
  * This extension enforces:
+ * </p>
  * <ul>
- *   <li>UUID keys (via Kafka's built-in UUIDSerializer/UUIDDeserializer)</li>
- *   <li>Protobuf values (via Apicurio Registry serde)</li>
+ * <li><strong>UUID keys:</strong> via Kafka's built-in
+ * {@code UUIDSerializer}/{@code UUIDDeserializer}.</li>
+ * <li><strong>Protobuf values:</strong> via Apicurio Registry serde.</li>
  * </ul>
+ *
  * <p>
- * Ordinal is set to 200 (lower than application.properties at 250) to allow
- * users to override these defaults in their application.properties.
+ * The ordinal is set to 200 (lower than {@code application.properties} at 250)
+ * to allow
+ * users to override these defaults in their {@code application.properties}.
+ * </p>
+ *
+ * <h3>Priority Chain</h3>
  * <p>
- * Priority chain (higher = wins):
- * - System properties: 400
- * - Environment variables: 300
- * - application.properties: 250
- * - This ConfigSource: 200 (can be overridden)
- * - Default values: ~100
+ * Configuration sources are loaded in the following order (higher ordinal
+ * wins):
+ * </p>
+ * <ol>
+ * <li>System properties: 400</li>
+ * <li>Environment variables: 300</li>
+ * <li>{@code application.properties}: 250</li>
+ * <li><strong>This ConfigSource: 200</strong> (can be overridden)</li>
+ * <li>Default values: ~100</li>
+ * </ol>
  */
 public class ProtobufChannelConfigSource implements ConfigSource {
 
@@ -141,7 +153,8 @@ public class ProtobufChannelConfigSource implements ConfigSource {
     @Override
     public int getOrdinal() {
         // Lower than application.properties (250) so users can easily override
-        // Still higher than most default configs to ensure Protobuf serializers are used
+        // Still higher than most default configs to ensure Protobuf serializers are
+        // used
         return 200;
     }
 }

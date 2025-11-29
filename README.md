@@ -7,6 +7,7 @@ This extension **auto-detects Protobuf message types** in your Kafka channels an
 ## Features
 
 - **Zero-config serialization** - Automatically configures `ProtobufKafkaSerializer` and `ProtobufKafkaDeserializer`
+- **UUID keys enforced** - All messages use UUID keys via `UUIDSerializer`/`UUIDDeserializer`
 - **Schema registry integration** - Auto-registers schemas and derives message classes
 - **DevServices** - Apicurio Registry starts automatically in dev/test mode
 - **Type-safe messaging** - Full Protobuf type support with generated Java classes
@@ -258,6 +259,125 @@ mp.messaging.incoming.orders-stream-in.topic=orders-reactive   # (2)
 
 ---
 
+## UUID Keys (Enforced)
+
+This extension enforces **UUID keys** for all Kafka messages. String keys are not supported - this is an opinionated design choice that ensures:
+
+- **Idempotency** - Deterministic keys enable replay without duplicates
+- **Partitioning** - Consistent key-based routing to partitions
+- **Compaction** - Meaningful log compaction with unique identifiers
+
+### Key Extractor Pattern
+
+Implement `UuidKeyExtractor<T>` to define how UUIDs are derived from your messages:
+
+```java
+@ApplicationScoped
+public class OrderEventKeyExtractor implements UuidKeyExtractor<OrderEvent> {
+
+    @Override
+    public UUID extractKey(OrderEvent message) {           // (1) Extract from message
+        return UUID.fromString(message.getOrderId());      // (2) Parse UUID from field
+    }
+}
+```
+
+1. **extractKey()** - Called for each message to derive its partition key
+2. **UUID.fromString()** - Parse from string field; could also use UUIDv5 for deterministic generation
+
+### Sending with UUID Keys
+
+Use the `ProtobufKafkaHelper` CDI service to send messages with UUID keys:
+
+```java
+@ApplicationScoped
+public class OrderService {
+
+    @Inject
+    @Channel("orders-out")
+    Emitter<OrderEvent> emitter;                          // (1) Standard SmallRye emitter
+
+    @Inject
+    ProtobufKafkaHelper kafka;                            // (2) CDI service for UUID keys
+
+    @Inject
+    OrderEventKeyExtractor keyExtractor;                  // (3) Your key extractor
+
+    // Option 1: Explicit UUID key
+    public void sendWithExplicitKey(UUID orderId, OrderEvent order) {
+        kafka.send(emitter, orderId, order);              // (4) Pass UUID directly
+    }
+
+    // Option 2: Extract key from message
+    public void sendWithExtractor(OrderEvent order) {
+        kafka.send(emitter, order, keyExtractor);         // (5) Use extractor
+    }
+
+    // Option 3: Inline lambda
+    public void sendWithLambda(OrderEvent order) {
+        kafka.send(emitter, order,
+                o -> UUID.fromString(o.getOrderId()));    // (6) One-off extraction
+    }
+}
+```
+
+1. **@Channel emitter** - Standard SmallRye emitter, unchanged
+2. **ProtobufKafkaHelper** - Injected service that handles UUID key metadata
+3. **Key extractor** - Your implementation, injected for reuse
+4. **Explicit UUID** - Use when UUID comes from external source (database, request)
+5. **With extractor** - Consistent key derivation across your service
+6. **Inline lambda** - Quick one-off cases
+
+### Consuming with UUID Key Access
+
+Access the UUID key via Kafka metadata:
+
+```java
+@ApplicationScoped
+public class OrderProcessor {
+
+    @Incoming("orders-in")
+    public CompletionStage<Void> process(Message<OrderEvent> message) {
+        OrderEvent order = message.getPayload();          // (1) Get Protobuf payload
+
+        // Access UUID key from Kafka metadata
+        IncomingKafkaRecordMetadata<UUID, OrderEvent> meta =
+                message.getMetadata(IncomingKafkaRecordMetadata.class)
+                        .orElse(null);                    // (2) Get Kafka metadata
+
+        if (meta != null) {
+            UUID key = meta.getKey();                     // (3) Extract UUID key
+            LOG.info("Processing order: key={}, id={}",
+                    key, order.getOrderId());
+        }
+
+        return message.ack();                             // (4) Acknowledge
+    }
+}
+```
+
+1. **getPayload()** - Extracts the deserialized Protobuf message
+2. **getMetadata()** - Access Kafka-specific metadata including key, partition, offset
+3. **getKey()** - Returns the UUID key (auto-deserialized via `UUIDDeserializer`)
+4. **ack()** - Acknowledge successful processing
+
+### RandomUuidKeyExtractor (Testing Only)
+
+For testing or prototyping, a `RandomUuidKeyExtractor` is provided - but it logs a warning:
+
+```java
+// DO NOT USE IN PRODUCTION
+@Inject
+RandomUuidKeyExtractor<OrderEvent> randomExtractor;
+
+kafka.send(emitter, order, randomExtractor);
+// Logs: "RandomUuidKeyExtractor is being used! DO NOT USE IN PRODUCTION"
+```
+
+Random UUIDs break idempotency and replay. Always implement a proper `UuidKeyExtractor` for production.
+
+---
+
 ## How It Works
 
 ```mermaid
@@ -295,6 +415,8 @@ The extension automatically sets these properties for detected Protobuf channels
 
 | Property | Outgoing | Incoming | Description |
 |----------|:--------:|:--------:|-------------|
+| `key.serializer` | ✓ | | `UUIDSerializer` - enforces UUID keys |
+| `key.deserializer` | | ✓ | `UUIDDeserializer` - deserializes UUID keys |
 | `value.serializer` | ✓ | | `ProtobufKafkaSerializer` |
 | `value.deserializer` | | ✓ | `ProtobufKafkaDeserializer` |
 | `auto.offset.reset` | | ✓ | `earliest` |

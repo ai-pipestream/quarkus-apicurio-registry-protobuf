@@ -9,17 +9,22 @@ import java.util.UUID;
 
 /**
  * CDI service for sending Protobuf messages to Kafka with UUID keys.
+ *
  * <p>
- * This extension enforces UUID keys for all Kafka messages. This service provides
+ * This extension enforces UUID keys for all Kafka messages. This service
+ * provides
  * convenient methods for sending messages with proper key metadata.
- * <p>
- * <b>Usage:</b>
- * <pre>{@code
- * @Inject
+ * </p>
+ *
+ * <h3>Usage</h3>
+ * 
+ * <pre>
+ * {@code
+ * &#64;Inject
  * ProtobufKafkaHelper kafka;
  *
- * @Inject
- * @Channel("orders-out")
+ * &#64;Inject
+ * &#64;Channel("orders-out")
  * Emitter<OrderEvent> emitter;
  *
  * @Inject
@@ -34,7 +39,8 @@ import java.util.UUID;
  * public void sendOrder(OrderEvent order) {
  *     kafka.send(emitter, order, keyExtractor);
  * }
- * }</pre>
+ * }
+ * </pre>
  *
  * @see UuidKeyExtractor
  */

@@ -8,29 +8,39 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A key extractor that generates random UUIDs for each message.
- * <p>
- * <b>WARNING: This extractor should NOT be used in production!</b>
+ *
+ * <div class="warning">
+ * <strong>WARNING: This extractor should NOT be used in production!</strong>
+ * </div>
+ *
  * <p>
  * Random UUIDs break several important Kafka patterns:
+ * </p>
  * <ul>
- *   <li><b>Idempotency</b> - Replaying the same message generates a different key</li>
- *   <li><b>Ordering</b> - Related messages may land on different partitions</li>
- *   <li><b>Compaction</b> - Log compaction becomes meaningless</li>
- *   <li><b>Deduplication</b> - Cannot detect duplicate messages</li>
+ * <li><strong>Idempotency:</strong> Replaying the same message generates a
+ * different key.</li>
+ * <li><strong>Ordering:</strong> Related messages may land on different
+ * partitions.</li>
+ * <li><strong>Compaction:</strong> Log compaction becomes meaningless.</li>
+ * <li><strong>Deduplication:</strong> Cannot detect duplicate messages.</li>
  * </ul>
+ *
  * <p>
  * Instead, derive your UUID from:
+ * </p>
  * <ul>
- *   <li>A natural business key (order ID, customer ID, etc.)</li>
- *   <li>A deterministic hash (UUIDv5 from content)</li>
- *   <li>An external system's identifier</li>
+ * <li>A natural business key (order ID, customer ID, etc.).</li>
+ * <li>A deterministic hash (UUIDv5 from content).</li>
+ * <li>An external system's identifier.</li>
  * </ul>
+ *
  * <p>
  * This class exists for:
+ * </p>
  * <ul>
- *   <li>Quick prototyping and testing</li>
- *   <li>Fire-and-forget events where replay doesn't matter</li>
- *   <li>Demonstrating what NOT to do in production</li>
+ * <li>Quick prototyping and testing.</li>
+ * <li>Fire-and-forget events where replay doesn't matter.</li>
+ * <li>Demonstrating what NOT to do in production.</li>
  * </ul>
  *
  * @param <T> the Protobuf message type
@@ -45,7 +55,8 @@ public class RandomUuidKeyExtractor<T extends Message> implements UuidKeyExtract
     /**
      * Creates a new random UUID extractor.
      * <p>
-     * Logs a warning on first use reminding developers not to use this in production.
+     * Logs a warning on first use reminding developers not to use this in
+     * production.
      */
     public RandomUuidKeyExtractor() {
         logWarningOnce();

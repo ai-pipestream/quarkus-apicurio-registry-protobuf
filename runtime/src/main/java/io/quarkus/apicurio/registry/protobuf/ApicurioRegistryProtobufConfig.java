@@ -8,7 +8,12 @@ import io.smallrye.config.WithDefault;
 import java.util.Optional;
 
 /**
- * Configuration for Apicurio Registry Protobuf extension.
+ * Runtime configuration for the Apicurio Registry Protobuf extension.
+ *
+ * <p>
+ * This configuration class defines properties that control the runtime behavior of the
+ * Protobuf serializer and deserializer, including artifact registration and lookup strategies.
+ * </p>
  */
 @ConfigMapping(prefix = "quarkus.apicurio-registry.protobuf")
 @ConfigRoot(phase = ConfigPhase.RUN_TIME)
@@ -16,35 +21,62 @@ public interface ApicurioRegistryProtobufConfig {
 
     /**
      * Whether to derive the Java class from the protobuf schema at runtime.
-     * When true, avoids classloading issues by using schema metadata instead of
-     * requiring the class to be on the application classpath.
      *
-     * Default is true to avoid Quarkus classloader visibility issues.
+     * <p>
+     * When set to {@code true}, this avoids classloading issues by using schema metadata
+     * instead of requiring the class to be on the application classpath.
+     * </p>
+     *
+     * <p>
+     * Default is {@code true} to avoid Quarkus classloader visibility issues.
+     * </p>
      */
     @WithDefault("true")
     boolean deriveClass();
 
     /**
      * Whether to automatically register artifacts with the registry.
+     *
+     * <p>
+     * If set to {@code true}, the serializer will attempt to register the Protobuf schema
+     * in the Apicurio Registry if it does not already exist.
+     * </p>
      */
     @WithDefault("true")
     boolean autoRegister();
 
     /**
      * The artifact resolver strategy to use.
-     * Common values: TopicIdStrategy, RecordIdStrategy, SimpleTopicIdStrategy
+     *
+     * <p>
+     * Common values include:
+     * </p>
+     * <ul>
+     *   <li>{@code io.apicurio.registry.serde.strategy.TopicIdStrategy}</li>
+     *   <li>{@code io.apicurio.registry.serde.strategy.RecordIdStrategy}</li>
+     *   <li>{@code io.apicurio.registry.serde.strategy.SimpleTopicIdStrategy} (Default)</li>
+     * </ul>
      */
     @WithDefault("io.apicurio.registry.serde.strategy.SimpleTopicIdStrategy")
     String artifactResolverStrategy();
 
     /**
      * Whether to find the latest artifact version.
+     *
+     * <p>
+     * If set to {@code true}, the deserializer will attempt to find the latest version
+     * of the artifact in the registry.
+     * </p>
      */
     @WithDefault("true")
     boolean findLatest();
 
     /**
      * Optional explicit group ID for artifacts.
+     *
+     * <p>
+     * If specified, this group ID will be used when registering or looking up artifacts.
+     * </p>
      */
     Optional<String> explicitGroupId();
 }
