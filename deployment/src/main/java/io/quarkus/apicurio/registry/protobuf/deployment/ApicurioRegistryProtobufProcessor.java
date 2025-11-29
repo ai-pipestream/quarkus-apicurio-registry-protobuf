@@ -2,7 +2,6 @@ package io.quarkus.apicurio.registry.protobuf.deployment;
 
 import io.quarkus.apicurio.registry.protobuf.ApicurioRegistryProtobufRecorder;
 import io.quarkus.apicurio.registry.protobuf.ProtobufKafkaHelper;
-import io.quarkus.apicurio.registry.protobuf.RandomUuidKeyExtractor;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
