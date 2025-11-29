@@ -92,7 +92,7 @@ tasks.named('javadoc') {
 // Configure Javadoc to avoid warnings/errors from generated sources
 tasks.withType(Javadoc).configureEach {
     // Exclude Quarkus-generated gRPC/protobuf classes from Javadoc
-    exclude('io/quarkus/apicurio/registry/protobuf/it/proto/**')
+    exclude('ai/pipestream/apicurio/registry/protobuf/it/proto/**')
 
     options.encoding = 'UTF-8'
     // Generated sources often lack full Javadoc; disable strict doclint

@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package io.quarkus.apicurio.registry.protobuf.it;
+package ai.pipestream.apicurio.registry.protobuf.it;
 
-option java_package = "io.quarkus.apicurio.registry.protobuf.it.proto";
+option java_package = "ai.pipestream.apicurio.registry.protobuf.it.proto";
 option java_outer_classname = "TestMessagesProto";
 option java_multiple_files = true;
 
