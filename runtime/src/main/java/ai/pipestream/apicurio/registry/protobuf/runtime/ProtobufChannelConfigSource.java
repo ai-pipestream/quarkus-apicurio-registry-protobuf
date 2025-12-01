@@ -2,6 +2,7 @@ package ai.pipestream.apicurio.registry.protobuf.runtime;
 
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.spi.ConfigSource;
+import org.jboss.logging.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +43,8 @@ import java.util.Set;
  */
 @SuppressWarnings("unused")
 public class ProtobufChannelConfigSource implements ConfigSource {
+
+    private static final Logger LOG = Logger.getLogger(ProtobufChannelConfigSource.class);
 
     // Value serializers (Protobuf via Apicurio Registry)
     private static final String PROTOBUF_SERIALIZER = "io.apicurio.registry.serde.protobuf.ProtobufKafkaSerializer";
@@ -172,11 +175,14 @@ public class ProtobufChannelConfigSource implements ConfigSource {
 
                 if (existingConnectorUrl.isEmpty()) {
                     properties.put(connectorKey, registryUrl.get());
+                    LOG.infof("Bridged apicurio.registry.url=%s to %s", registryUrl.get(), connectorKey);
                 }
             }
         } catch (Exception e) {
             // Config may not be fully initialized yet during early bootstrap
-            // This is fine - the property will be available through normal config lookup
+            // Log this as a warning so the user knows why it might fail
+            LOG.warn("Failed to bridge 'apicurio.registry.url' to 'mp.messaging.connector.smallrye-kafka.apicurio.registry.url'. " +
+                    "If you are manually configuring the registry URL, please explicitly set 'mp.messaging.connector.smallrye-kafka.apicurio.registry.url' in your configuration.", e);
         }
     }
 

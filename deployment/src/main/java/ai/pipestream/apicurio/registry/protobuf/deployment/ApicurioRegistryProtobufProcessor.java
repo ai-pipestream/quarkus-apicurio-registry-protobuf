@@ -171,7 +171,8 @@ class ApicurioRegistryProtobufProcessor {
     void autoConfigureProtobufChannels(
             CombinedIndexBuildItem combinedIndex,
             ApicurioRegistryProtobufRecorder recorder,
-            BuildProducer<RunTimeConfigurationDefaultBuildItem> defaults) {
+            BuildProducer<RunTimeConfigurationDefaultBuildItem> defaults,
+            BuildProducer<ProtobufChannelsBuildItem> channelsBuildItem) {
 
         IndexView index = combinedIndex.getIndex();
         Set<String> configuredIncoming = new HashSet<>();
@@ -275,7 +276,16 @@ class ApicurioRegistryProtobufProcessor {
         // This sets serializer/deserializer with high priority to override SmallRye defaults
         if (!configuredIncoming.isEmpty() || !configuredOutgoing.isEmpty()) {
             recorder.configureProtobufChannels(configuredIncoming, configuredOutgoing);
+            channelsBuildItem.produce(new ProtobufChannelsBuildItem(true));
+        } else {
+            channelsBuildItem.produce(new ProtobufChannelsBuildItem(false));
         }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void validateRuntimeConfig(ApicurioRegistryProtobufRecorder recorder, ProtobufChannelsBuildItem channels) {
+        recorder.validateConfig(channels.hasChannels());
     }
 
     /**
